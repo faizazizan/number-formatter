@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sitemap & Robots Checker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sitemap.css">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <h1>Sitemap & <span class="gradient-text">Robots Checker</span></h1>
+            <p>Analyze your site's visibility to search engines and AI bots.</p>
+        </header>
+
+        <div class="glass-panel">
+            <form id="sitemap-form">
+                <div class="url-input-group">
+                    <input type="url" id="url-input" placeholder="Enter website URL (e.g., https://example.com)"
+                        required>
+                    <button type="submit" id="check-btn" class="primary-btn">
+                        Check Sitemap
+                    </button>
+                </div>
+            </form>
+
+            <div id="results-container" class="results-container">
+                <!-- Robots.txt Status -->
+                <div class="status-card">
+                    <div class="status-header">
+                        <h3><i class="fas fa-robot"></i> Robots.txt Status</h3>
+                        <div id="robots-status"></div>
+                    </div>
+
+                    <h4>LLM Bot Rules</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px;">
+                        Detection of rules for GPTBot, CCBot, Google-Extended, etc.
+                    </p>
+                    <div id="llm-rules" class="llm-grid">
+                        <!-- LLM Rules injected here -->
+                    </div>
+                </div>
+
+                <!-- Sitemaps List -->
+                <div class="status-card">
+                    <div class="status-header">
+                        <h3><i class="fas fa-sitemap"></i> Sitemaps Found</h3>
+                    </div>
+                    <div id="sitemaps-list" class="sitemap-list">
+                        <!-- Sitemaps injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Antigravity Tools. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="sitemap.js"></script>
+</body>
+
+</html>

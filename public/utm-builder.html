@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM Builder - Campaign Link Generator</title>
+    <link rel="stylesheet" href="utm-builder.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navigation">
+            <div class="nav-brand">
+                <h1>🎯 UTM Builder</h1>
+            </div>
+            <div class="nav-links">
+                <a href="utm-builder.html" class="nav-link active">Builder</a>
+                <a href="index.html" class="nav-link">WebP Tool</a>
+            </div>
+        </nav>
+
+        <div class="hero">
+            <h2 class="hero-title">UTM Campaign Builder</h2>
+            <p class="hero-subtitle">Create campaign URLs with UTM parameters</p>
+        </div>
+
+        <div class="builder-container">
+            <div class="form-section">
+                <h3 class="section-title">Campaign Details</h3>
+
+                <div class="form-group">
+                    <label for="destination-url">
+                        <span class="label-text">Destination URL</span>
+                        <span class="required">*</span>
+                    </label>
+                    <input type="url" id="destination-url" placeholder="https://example.com/landing-page" required>
+                    <span class="helper-text">The final URL where users will land</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="source">
+                            <span class="label-text">Campaign Source</span>
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="source" placeholder="google, facebook, newsletter" required>
+                        <span class="helper-text">utm_source</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medium">
+                            <span class="label-text">Campaign Medium</span>
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="medium" placeholder="cpc, email, social" required>
+                        <span class="helper-text">utm_medium</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaign">
+                        <span class="label-text">Campaign Name</span>
+                    </label>
+                    <input type="text" id="campaign" placeholder="summer_sale_2024">
+                    <span class="helper-text">utm_campaign</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="content">
+                            <span class="label-text">Campaign Content</span>
+                        </label>
+                        <input type="text" id="content" placeholder="banner_ad, text_link">
+                        <span class="helper-text">utm_content</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="term">
+                            <span class="label-text">Campaign Term</span>
+                        </label>
+                        <input type="text" id="term" placeholder="running+shoes">
+                        <span class="helper-text">utm_term</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h3 class="section-title">Preview</h3>
+
+                <div class="preview-card">
+                    <div class="preview-label">Live Preview</div>
+                    <div class="preview-url" id="preview-url">
+                        Enter campaign details to see preview
+                    </div>
+                </div>
+
+                <button class="btn-copy" id="copy-url-btn" style="margin-top: 1rem; width: 100%;">
+                    <i class="fas fa-copy"></i>
+                    Copy URL
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="utm-builder.js"></script>
+</body>
+
+</html>

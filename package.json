@@ -1,0 +1,36 @@
+{
+  "name": "utm-builder-tracker",
+  "version": "1.0.0",
+  "description": "A modern UTM Builder with click tracking and analytics dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "deploy": "gh-pages -d public"
+  },
+  "homepage": "https://faizazizan.github.io/vibe-coding",
+  "keywords": [
+    "utm",
+    "builder",
+    "tracking",
+    "analytics",
+    "campaign"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.4.0",
+    "archiver": "^7.0.1",
+    "axios": "^1.13.2",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "robots-parser": "^3.0.1",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}
