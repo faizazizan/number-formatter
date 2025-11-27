@@ -446,6 +446,9 @@
                     <span>📁 Upload CSV</span>
                     <input type="file" id="csv-upload" accept=".csv" style="display: none;" />
                 </label>
+                <button id="reformat-btn" class="btn btn-secondary hidden">
+                    <span>🔄 Reformat</span>
+                </button>
                 <button id="download-btn" class="btn btn-success hidden">
                     <span>⬇️ Download CSV</span>
                 </button>
@@ -476,53 +479,22 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // Format with 60 prefix, NO 600 pattern allowed
+        // Format with 60 prefix, ensure numbers start with 601
         function formatNumber(raw) {
-            const sanitizedNumber = raw.replace(/\D/g, '');
+            // 1. Sanitize: Remove non-digits
+            const sanitized = raw.replace(/\D/g, '');
 
-            // Handle edge cases
-            if (sanitizedNumber === '6' || sanitizedNumber === '60') {
-                return '60';
-            }
+            // 2. Strip ALL leading 6s and 0s
+            // This handles "6060...", "600...", "00...", "6..."
+            let core = sanitized.replace(/^[60]+/, '');
 
-            let digits;
-
-            // Remove 60 prefix if present
-            if (sanitizedNumber.startsWith('60')) {
-                const withoutSixZero = sanitizedNumber.substring(2);
-                if (!withoutSixZero) return '60';
-                digits = withoutSixZero;
-            }
-            // Remove 6 prefix if present
-            else if (sanitizedNumber.startsWith('6')) {
-                const withoutSix = sanitizedNumber.substring(1);
-                if (!withoutSix) return '60';
-                digits = withoutSix;
-            }
-            // Handle 1 prefix
-            else if (sanitizedNumber.startsWith('1')) {
-                digits = '1' + sanitizedNumber.substring(1);
-            }
-            // Handle 01 prefix
-            else if (sanitizedNumber.startsWith('01')) {
-                digits = sanitizedNumber.substring(1);
-            }
-            // Handle 0 prefix
-            else if (sanitizedNumber.startsWith('0')) {
-                digits = sanitizedNumber.substring(1);
-            }
-            // No prefix
-            else {
-                digits = '1' + sanitizedNumber;
+            // 3. If core is empty or doesn't start with 1, prepend 1
+            if (!core || !core.startsWith('1')) {
+                core = '1' + core;
             }
 
-            // Remove all leading zeros to prevent 600...
-            while (digits.startsWith('0') && digits.length > 1) {
-                digits = digits.substring(1);
-            }
-
-            // Always return with 60 prefix
-            return '60' + digits;
+            // 4. Always return with 60 prefix
+            return '60' + core;
         }
 
         function toWhatsAppLink(formattedNumber) {
@@ -599,6 +571,7 @@
             // Rearrange buttons
             document.getElementById('format-btn').classList.add('hidden');
             document.getElementById('upload-label').classList.add('hidden');
+            document.getElementById('reformat-btn').classList.remove('hidden');
             document.getElementById('download-btn').classList.remove('hidden');
             document.getElementById('whatsapp-btn').classList.remove('hidden');
             document.getElementById('download-wa-btn').classList.add('hidden');
@@ -677,6 +650,21 @@
             if (whatsappLinks.length > 0) {
                 downloadCSV(whatsappLinks, 'whatsapp_links.csv');
             }
+        });
+
+        document.getElementById('reformat-btn').addEventListener('click', () => {
+            // Hide output
+            document.getElementById('output').classList.add('hidden');
+
+            // Reset buttons
+            document.getElementById('format-btn').classList.remove('hidden');
+            document.getElementById('upload-label').classList.remove('hidden');
+            document.getElementById('reformat-btn').classList.add('hidden');
+            document.getElementById('download-btn').classList.add('hidden');
+            document.getElementById('whatsapp-btn').classList.add('hidden');
+            document.getElementById('download-wa-btn').classList.add('hidden');
+
+            showToast('Ready to format again!');
         });
     </script>
 </body>
