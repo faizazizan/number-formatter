@@ -441,405 +441,232 @@
             <div class="button-group">
                 <button id="format-btn" class="btn btn-primary">
                     <span>✨ Format Numbers</span>
-                    z-index: 1;
-                    }
+                </button>
+                <label id="upload-label" class="btn btn-secondary" style="margin: 0; cursor: pointer;">
+                    <span>📁 Upload CSV</span>
+                    <input type="file" id="csv-upload" accept=".csv" style="display: none;" />
+                </label>
+                <button id="reformat-btn" class="btn btn-secondary hidden">
+                    <span>🔄 Reformat</span>
+                </button>
+                <button id="download-btn" class="btn btn-success hidden">
+                    <span>⬇️ Download CSV</span>
+                </button>
+                <button id="whatsapp-btn" class="btn btn-secondary hidden">
+                    <span>💬 Convert to WhatsApp</span>
+                </button>
+                <button id="download-wa-btn" class="btn btn-success hidden">
+                    <span>⬇️ Download WhatsApp CSV</span>
+                </button>
+            </div>
 
-                    .btn-primary {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-                    color: white;
-                    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-                    }
+            <div id="output" class="output-section hidden">
+                <div class="output-header">
+                    <h3 id="output-title" class="output-title">Formatted Numbers</h3>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button id="copy-all-btn" class="btn btn-secondary"
+                            style="padding: 8px 16px; font-size: 0.875rem;">
+                            <span>📋 Copy All</span>
+                        </button>
+                        <span id="count-badge" class="count-badge">0 numbers</span>
+                    </div>
+                </div>
+                <div id="number-list" class="number-list"></div>
+            </div>
+        </div>
+    </div>
 
-                    .btn-primary:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
-                    }
+    <div id="toast" class="toast"></div>
 
-                    .btn-secondary {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: var(--text-primary);
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    }
+    <script>
+        // Format with 60 prefix, ensure numbers start with 601
+        function formatNumber(raw) {
+            // 1. Sanitize: Remove non-digits
+            const sanitized = raw.replace(/\D/g, '');
 
-                    .btn-secondary:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    border-color: rgba(255, 255, 255, 0.3);
-                    transform: translateY(-2px);
-                    }
+            // 2. Strip ALL leading 6s and 0s
+            // This handles "6060...", "600...", "00...", "6..."
+            let core = sanitized.replace(/^[60]+/, '');
 
-                    .btn-success {
-                    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-                    color: white;
-                    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-                    }
+            // 3. If core is empty or doesn't start with 1, prepend 1
+            if (!core || !core.startsWith('1')) {
+                core = '1' + core;
+            }
 
-                    .btn-success:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
-                    }
+            // 4. Always return with 60 prefix
+            return '60' + core;
+        }
 
-                    .hidden {
-                    display: none !important;
-                    }
+        function toWhatsAppLink(formattedNumber) {
+            const digits = formattedNumber.replace(/[^0-9]/g, '');
+            return 'wa.me/' + digits;
+        }
 
-                    .output-section {
-                    margin-top: 32px;
-                    }
+        function parseCSV(text) {
+            return text.split(/[,\r\n]+/).map(s => s.trim()).filter(Boolean);
+        }
 
-                    .output-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    }
+        function downloadCSV(lines, filename = 'formatted_numbers.csv') {
+            const csvContent = lines.map(l => `"${l}"`).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('CSV downloaded successfully!');
+        }
 
-                    .output-title {
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    color: var(--text-primary);
-                    }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
 
-                    .count-badge {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-                    color: white;
-                    padding: 6px 16px;
-                    border-radius: 20px;
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                    }
+        let formattedNumbers = [];
+        let whatsappLinks = [];
 
-                    .number-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    }
+        document.getElementById('format-btn').addEventListener('click', () => {
+            const raw = document.getElementById('number-input').value;
+            const numbers = parseCSV(raw);
 
-                    .number-item {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 16px 20px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    transition: all 0.3s ease;
-                    animation: slideInRight 0.4s ease-out both;
-                    }
+            if (numbers.length === 0) {
+                showToast('Please enter some numbers first!');
+                return;
+            }
 
-                    .number-item:hover {
-                    background: rgba(255, 255, 255, 0.08);
-                    border-color: rgba(255, 255, 255, 0.2);
-                    transform: translateX(4px);
-                    }
+            formattedNumbers = numbers.map(formatNumber);
 
-                    @keyframes slideInRight {
-                    from {
-                    opacity: 0;
-                    transform: translateX(-20px);
-                    }
+            const outputSection = document.getElementById('output');
+            const numberList = document.getElementById('number-list');
+            const countBadge = document.getElementById('count-badge');
 
-                    to {
-                    opacity: 1;
-                    transform: translateX(0);
-                    }
-                    }
+            numberList.innerHTML = '';
 
-                    .number-text {
-                    font-size: 1.125rem;
-                    font-weight: 500;
-                    color: var(--text-primary);
-                    font-family: 'Inter', monospace;
-                    }
+            formattedNumbers.forEach((num, index) => {
+                const item = document.createElement('div');
+                item.className = 'number-item';
+                item.style.animationDelay = `${index * 0.05}s`;
+                item.innerHTML = `
+                    <span class="number-text">${num}</span>
+                    <button class="copy-btn" data-num="${num}">Copy</button>
+                `;
 
-                    .copy-btn {
-                    padding: 8px 16px;
-                    background: rgba(99, 102, 241, 0.2);
-                    border: 1px solid rgba(99, 102, 241, 0.3);
-                    border-radius: 8px;
-                    color: var(--primary);
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    }
+                item.querySelector('.copy-btn').addEventListener('click', async (e) => {
+                    await navigator.clipboard.writeText(e.target.dataset.num);
+                    showToast('Copied to clipboard!');
+                });
 
-                    .copy-btn:hover {
-                    background: rgba(99, 102, 241, 0.3);
-                    border-color: var(--primary);
-                    color: white;
-                    }
+                numberList.appendChild(item);
+            });
 
-                    .toast {
-                    position: fixed;
-                    bottom: 32px;
-                    right: 32px;
-                    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-                    color: white;
-                    padding: 16px 24px;
-                    border-radius: 12px;
-                    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
-                    font-weight: 600;
-                    opacity: 0;
-                    transform: translateY(20px);
-                    transition: all 0.3s ease;
-                    z-index: 1000;
-                    }
+            countBadge.textContent = `${formattedNumbers.length} number${formattedNumbers.length !== 1 ? 's' : ''}`;
+            document.getElementById('output-title').textContent = 'Formatted Numbers';
+            outputSection.classList.remove('hidden');
 
-                    .toast.show {
-                    opacity: 1;
-                    transform: translateY(0);
-                    }
+            // Rearrange buttons
+            document.getElementById('format-btn').classList.add('hidden');
+            document.getElementById('upload-label').classList.add('hidden');
+            document.getElementById('reformat-btn').classList.remove('hidden');
+            document.getElementById('download-btn').classList.remove('hidden');
+            document.getElementById('whatsapp-btn').classList.remove('hidden');
+            document.getElementById('download-wa-btn').classList.add('hidden');
 
-                    @media (max-width: 768px) {
-                    h1 {
-                    font-size: 2.5rem;
-                    }
+            showToast(`Formatted ${formattedNumbers.length} numbers!`);
+        });
 
-                    .glass-card {
-                    padding: 28px;
-                    }
+        document.getElementById('csv-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-                    .button-group {
-                    flex-direction: column;
-                    }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const content = ev.target.result;
+                document.getElementById('number-input').value = content;
+                showToast('CSV loaded! Click "Format Numbers" to process.');
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
 
-                    .btn {
-                    width: 100%;
-                    justify-content: center;
-                    }
-                    }
-                    </style>
-                    </head>
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (formattedNumbers.length > 0) {
+                downloadCSV(formattedNumbers);
+            }
+        });
 
-                    <body>
-                        <div class="bg-blobs">
-                            <div class="blob blob-1"></div>
-                            <div class="blob blob-2"></div>
-                            <div class="blob blob-3"></div>
-                        </div>
+        document.getElementById('copy-all-btn').addEventListener('click', async () => {
+            const numberList = document.getElementById('number-list');
+            const numbers = Array.from(numberList.querySelectorAll('.number-text')).map(el => el.textContent);
 
-                        <div class="container">
-                            <header>
-                                <h1>Phone Number Formatter</h1>
-                                <p class="subtitle">Transform your phone numbers into perfect Malaysian format</p>
-                            </header>
+            if (numbers.length > 0) {
+                const allNumbers = numbers.join('\n');
+                await navigator.clipboard.writeText(allNumbers);
+                showToast(`Copied ${numbers.length} numbers to clipboard!`);
+            }
+        });
 
-                            <div class="glass-card">
-                                <div class="input-section">
-                                    <label for="number-input">Enter Phone Numbers</label>
-                                    <textarea id="number-input" rows="6"
-                                        placeholder="Enter numbers separated by comma, space, or newline&#10;Example: 0123456789, 1123456789, 61123456789"></textarea>
-                                </div>
+        document.getElementById('whatsapp-btn').addEventListener('click', () => {
+            if (formattedNumbers.length === 0) {
+                showToast('Please format numbers first!');
+                return;
+            }
 
-                                <div class="button-group">
-                                    <button id="format-btn" class="btn btn-primary">
-                                        <span>✨ Format Numbers</span>
-                                    </button>
-                                    <label id="upload-label" class="btn btn-secondary"
-                                        style="margin: 0; cursor: pointer;">
-                                        <span>📁 Upload CSV</span>
-                                        <input type="file" id="csv-upload" accept=".csv" style="display: none;" />
-                                    </label>
-                                    <button id="reformat-btn" class="btn btn-secondary hidden">
-                                        <span>🔄 Reformat</span>
-                                    </button>
-                                    <button id="download-btn" class="btn btn-success hidden">
-                                        <span>⬇️ Download CSV</span>
-                                    </button>
-                                    <button id="whatsapp-btn" class="btn btn-secondary hidden">
-                                        <span>💬 Convert to WhatsApp</span>
-                                    </button>
-                                    <button id="download-wa-btn" class="btn btn-success hidden">
-                                        <span>⬇️ Download WhatsApp CSV</span>
-                                    </button>
-                                </div>
+            whatsappLinks = formattedNumbers.map(toWhatsAppLink);
 
-                                <div id="output" class="output-section hidden">
-                                    <div class="output-header">
-                                        <h3 id="output-title" class="output-title">Formatted Numbers</h3>
-                                        <div style="display: flex; gap: 12px; align-items: center;">
-                                            <button id="copy-all-btn" class="btn btn-secondary"
-                                                style="padding: 8px 16px; font-size: 0.875rem;">
-                                                <span>📋 Copy All</span>
-                                            </button>
-                                            <span id="count-badge" class="count-badge">0 numbers</span>
-                                        </div>
-                                    </div>
-                                    <div id="number-list" class="number-list"></div>
-                                </div>
-                            </div>
-                        </div>
+            const numberList = document.getElementById('number-list');
+            numberList.innerHTML = '';
 
-                        function parseCSV(text) {
-                        return text.split(/[,\r\n]+/).map(s => s.trim()).filter(Boolean);
-                        }
+            whatsappLinks.forEach((link, index) => {
+                const item = document.createElement('div');
+                item.className = 'number-item';
+                item.style.animationDelay = `${index * 0.05}s`;
+                item.innerHTML = `
+                    <span class="number-text">${link}</span>
+                    <button class="copy-btn" data-num="${link}">Copy</button>
+                `;
 
-                        function downloadCSV(lines, filename = 'formatted_numbers.csv') {
-                        const csvContent = lines.map(l => `"${l}"`).join('\n');
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        showToast('CSV downloaded successfully!');
-                        }
+                item.querySelector('.copy-btn').addEventListener('click', async (e) => {
+                    await navigator.clipboard.writeText(e.target.dataset.num);
+                    showToast('Copied to clipboard!');
+                });
 
-                        function showToast(message) {
-                        const toast = document.getElementById('toast');
-                        toast.textContent = message;
-                        toast.classList.add('show');
-                        setTimeout(() => toast.classList.remove('show'), 3000);
-                        }
+                numberList.appendChild(item);
+            });
 
-                        let formattedNumbers = [];
-                        let whatsappLinks = [];
+            document.getElementById('count-badge').textContent = `${whatsappLinks.length} WhatsApp link${whatsappLinks.length !== 1 ? 's' : ''}`;
+            document.getElementById('output-title').textContent = 'WhatsApp Links';
+            document.getElementById('download-wa-btn').classList.remove('hidden');
+            document.getElementById('download-btn').classList.add('hidden');
 
-                        document.getElementById('format-btn').addEventListener('click', () => {
-                        const raw = document.getElementById('number-input').value;
-                        const numbers = parseCSV(raw);
+            showToast(`Converted ${whatsappLinks.length} to WhatsApp links!`);
+        });
 
-                        if (numbers.length === 0) {
-                        showToast('Please enter some numbers first!');
-                        return;
-                        }
+        document.getElementById('download-wa-btn').addEventListener('click', () => {
+            if (whatsappLinks.length > 0) {
+                downloadCSV(whatsappLinks, 'whatsapp_links.csv');
+            }
+        });
 
-                        formattedNumbers = numbers.map(formatNumber);
+        document.getElementById('reformat-btn').addEventListener('click', () => {
+            // Hide output
+            document.getElementById('output').classList.add('hidden');
 
-                        const outputSection = document.getElementById('output');
-                        const numberList = document.getElementById('number-list');
-                        const countBadge = document.getElementById('count-badge');
+            // Reset buttons
+            document.getElementById('format-btn').classList.remove('hidden');
+            document.getElementById('upload-label').classList.remove('hidden');
+            document.getElementById('reformat-btn').classList.add('hidden');
+            document.getElementById('download-btn').classList.add('hidden');
+            document.getElementById('whatsapp-btn').classList.add('hidden');
+            document.getElementById('download-wa-btn').classList.add('hidden');
 
-                        numberList.innerHTML = '';
-
-                        formattedNumbers.forEach((num, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'number-item';
-                        item.style.animationDelay = `${index * 0.05}s`;
-                        item.innerHTML = `
-                        <span class="number-text">${num}</span>
-                        <button class="copy-btn" data-num="${num}">Copy</button>
-                        `;
-
-                        item.querySelector('.copy-btn').addEventListener('click', async (e) => {
-                        await navigator.clipboard.writeText(e.target.dataset.num);
-                        showToast('Copied to clipboard!');
-                        });
-
-                        numberList.appendChild(item);
-                        });
-
-                        countBadge.textContent = `${formattedNumbers.length} number${formattedNumbers.length !== 1 ? 's'
-                        : ''}`;
-                        document.getElementById('output-title').textContent = 'Formatted Numbers';
-                        outputSection.classList.remove('hidden');
-
-                        // Rearrange buttons
-                        document.getElementById('format-btn').classList.add('hidden');
-                        document.getElementById('upload-label').classList.add('hidden');
-                        document.getElementById('reformat-btn').classList.remove('hidden');
-                        document.getElementById('download-btn').classList.remove('hidden');
-                        document.getElementById('whatsapp-btn').classList.remove('hidden');
-                        document.getElementById('download-wa-btn').classList.add('hidden');
-
-                        showToast(`Formatted ${formattedNumbers.length} numbers!`);
-                        });
-
-                        document.getElementById('csv-upload').addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                        const content = ev.target.result;
-                        document.getElementById('number-input').value = content;
-                        showToast('CSV loaded! Click "Format Numbers" to process.');
-                        };
-                        reader.readAsText(file);
-                        e.target.value = '';
-                        });
-
-                        document.getElementById('download-btn').addEventListener('click', () => {
-                        if (formattedNumbers.length > 0) {
-                        downloadCSV(formattedNumbers);
-                        }
-                        });
-
-                        document.getElementById('copy-all-btn').addEventListener('click', async () => {
-                        const numberList = document.getElementById('number-list');
-                        const numbers = Array.from(numberList.querySelectorAll('.number-text')).map(el =>
-                        el.textContent);
-
-                        if (numbers.length > 0) {
-                        const allNumbers = numbers.join('\n');
-                        await navigator.clipboard.writeText(allNumbers);
-                        showToast(`Copied ${numbers.length} numbers to clipboard!`);
-                        }
-                        });
-
-                        document.getElementById('whatsapp-btn').addEventListener('click', () => {
-                        if (formattedNumbers.length === 0) {
-                        showToast('Please format numbers first!');
-                        return;
-                        }
-
-                        whatsappLinks = formattedNumbers.map(toWhatsAppLink);
-
-                        const numberList = document.getElementById('number-list');
-                        numberList.innerHTML = '';
-
-                        whatsappLinks.forEach((link, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'number-item';
-                        item.style.animationDelay = `${index * 0.05}s`;
-                        item.innerHTML = `
-                        <span class="number-text">${link}</span>
-                        <button class="copy-btn" data-num="${link}">Copy</button>
-                        `;
-
-                        item.querySelector('.copy-btn').addEventListener('click', async (e) => {
-                        await navigator.clipboard.writeText(e.target.dataset.num);
-                        showToast('Copied to clipboard!');
-                        });
-
-                        numberList.appendChild(item);
-                        });
-
-                        document.getElementById('count-badge').textContent = `${whatsappLinks.length} WhatsApp
-                        link${whatsappLinks.length !== 1 ? 's' : ''}`;
-                        document.getElementById('output-title').textContent = 'WhatsApp Links';
-                        document.getElementById('download-wa-btn').classList.remove('hidden');
-                        document.getElementById('download-btn').classList.add('hidden');
-
-                        showToast(`Converted ${whatsappLinks.length} to WhatsApp links!`);
-                        });
-
-                        document.getElementById('download-wa-btn').addEventListener('click', () => {
-                        if (whatsappLinks.length > 0) {
-                        downloadCSV(whatsappLinks, 'whatsapp_links.csv');
-                        }
-                        });
-
-                        document.getElementById('reformat-btn').addEventListener('click', () => {
-                        // Hide output
-                        document.getElementById('output').classList.add('hidden');
-
-                        // Reset buttons
-                        document.getElementById('format-btn').classList.remove('hidden');
-                        document.getElementById('upload-label').classList.remove('hidden');
-                        document.getElementById('reformat-btn').classList.add('hidden');
-                        document.getElementById('download-btn').classList.add('hidden');
-                        document.getElementById('whatsapp-btn').classList.add('hidden');
-                        document.getElementById('download-wa-btn').classList.add('hidden');
-
-                        showToast('Ready to format again!');
-                        });
-                        </script>
-                    </body>
+            showToast('Ready to format again!');
+        });
+    </script>
+</body>
 
 </html>
